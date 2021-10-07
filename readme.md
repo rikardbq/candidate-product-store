@@ -27,10 +27,10 @@ _NOTE: Think of this as code that will be run in a production environment_
 
 **Documentation:**
 
-API url: https://api.deverything.se/candidate-product-store
+API base url: https://api.deverything.se/candidate-product-store
 
-Here you find the postman collection explaining the api:
+Swagger UI describing the API:
+http://candidate-product-store-api.s3-website-eu-west-1.amazonaws.com/
+(Note: For the moment you cannot use the swagger ui to make the actual API calls)
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/171b7b97fa753a3fa6c7)
-
-You will notice that you need an api key to continue, if you didn't receive one by e-mail, contact us at jobs@deverything.se and we will send you a new one.
+You will notice that you need an **api key** to continue, if you didn't receive one by e-mail, contact us at jobs@deverything.se and we will send you a new one.
