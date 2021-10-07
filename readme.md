@@ -30,4 +30,7 @@ _NOTE: Think of this as code that will be run in a production environment_
 API url: https://api.deverything.se/candidate-product-store
 
 Here you find the postman collection explaining the api:
+
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/171b7b97fa753a3fa6c7)
+
+You will notice that you need an api key to continue, if you didn't receive one by e-mail, contact us at jobs@deverything.se and we will send you a new one.

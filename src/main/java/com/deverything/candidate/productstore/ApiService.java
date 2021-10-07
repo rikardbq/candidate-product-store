@@ -2,7 +2,7 @@ package com.deverything.candidate.productstore;
 
 import java.util.List;
 
-public interface ApiService<ProductObject, ProductDimensionsObject, BoxObject, CheckoutSummeryObject> {
+public interface ApiService<ProductObject, ProductDimensionsObject, BoxListObject, CheckoutObject, CheckoutSummaryObject> {
 
     /**
      * Should get a json list of products from API
@@ -15,19 +15,17 @@ public interface ApiService<ProductObject, ProductDimensionsObject, BoxObject, C
     public ProductDimensionsObject getProductDimensions(int productId);
 
     /**
-     * Should find all products with a price higher then 300
+     * Should get a json object with a list of boxes from the API
+     * @return
      */
-    public List<ProductObject> listOfProductsWithPriceHigherThen300(List<ProductObject> products);
+    public BoxListObject getBoxes();
 
     /**
-     * Should post a request to API to create a box with required dimensions to fit selected products
+     * Performs the checkout
+     * @param checkoutObject json object that contains the boxId and the list of products to checkout
+     * @return the checkout summary object
      */
-    public BoxObject postBoxSize(List<ProductDimensionsObject> productDimensionsList);
-
-    /**
-     * Places an order for the box and products against the API
-     */
-    public CheckoutSummeryObject checkout(BoxObject box);
+    public CheckoutSummaryObject checkout(CheckoutObject checkoutObject);
 
 
 }

@@ -26,7 +26,7 @@ public class ApiServiceTest {
         System.out.println("Let's get product dimensions for products with id 3 and 7");
         System.out.println("YOUR-RESULT-HERE");
 
-        System.out.println("Create a box using the API with size to fit both the products 3 and 7 in a single box");
+        System.out.println("Get all boxes and choose the best one that fits both the products 3 and 7 in a single box");
         System.out.println("YOUR-RESULT-HERE");
 
         System.out.println("Now we place the order using the checkout in the API");
