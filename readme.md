@@ -17,8 +17,8 @@ Do the following tasks to succeed with your mission!
 1. Start by listing all available products from the API.
 2. Find all products with a price higher then 300.
 3. Get the product dimensions for product id's 3 and 7.
-4. Create a box using the API. The box should be able to fit the products with id 3 and 7 in the moste efficient way.
-5. Now checkout the order of the Box with its products.
+4. Get all boxes using the API. Choose the box that is able to fit the products with id 3 and 7 in the moste efficient way.
+5. Now checkout the order using that box and products 3 and 7.
 6. The result from the checkout will tell you if it's a success or error.
 7. Send us a mail with a link to your code repo (github, bitbucket etc) and inclued your final run result.
 
