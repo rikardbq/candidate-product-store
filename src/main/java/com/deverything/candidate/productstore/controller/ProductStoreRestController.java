@@ -1,24 +1,22 @@
 package com.deverything.candidate.productstore.controller;
 
-import com.deverything.candidate.productstore.model.ProductObject;
+import com.deverything.candidate.productstore.model.controller.CheckoutRequest;
 import com.deverything.candidate.productstore.service.ApiServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("something")
+@RequestMapping("product-store")
 public class ProductStoreRestController {
 
   @Autowired
   ApiServiceImpl apiService;
 
-  @GetMapping(name = "/{id}", produces = "application/json")
-  public Object getProduct(@PathVariable int id) {
-    return apiService.getProductDimensions(id);
+  @PostMapping(value = "/checkout", produces = "application/json")
+  public Object checkout(@RequestBody CheckoutRequest checkoutRequest) {
+    // stuff done here
+    System.out.println(checkoutRequest.getProductIds());
+    apiService.calculatePackagingForProducts(checkoutRequest.getPriceThreshold(), checkoutRequest.getProductIds());
+    return null;
   }
 }

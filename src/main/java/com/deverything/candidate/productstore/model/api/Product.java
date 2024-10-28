@@ -1,19 +1,19 @@
-package com.deverything.candidate.productstore.model;
+package com.deverything.candidate.productstore.model.api;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-public class ProductObject implements Serializable {
+public class Product implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private int id;
   private String name;
   private long price;
 
-  public ProductObject() {
+  public Product() {
   }
 
-  public ProductObject(int id, String name, long price) {
+  public Product(int id, String name, long price) {
     this.id = id;
     this.name = name;
     this.price = price;
@@ -47,8 +47,8 @@ public class ProductObject implements Serializable {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    ProductObject productObject = (ProductObject) o;
-    return id == productObject.id && price == productObject.price && Objects.equals(name, productObject.name);
+    Product product = (Product) o;
+    return id == product.id && price == product.price && Objects.equals(name, product.name);
   }
 
   @Override

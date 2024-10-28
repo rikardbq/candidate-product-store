@@ -1,4 +1,4 @@
-package com.deverything.candidate.productstore.model;
+package com.deverything.candidate.productstore.model.api;
 
 import java.io.Serializable;
 import java.util.List;
@@ -50,6 +50,6 @@ public class CheckoutObject implements Serializable {
 
   @Override
   public String toString() {
-    return super.toString();
+    return getClass() + " " + "boxId=" + boxId + ", productIds=" + productIds;
   }
 }
