@@ -55,7 +55,7 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
     return makePOSTRequest("/checkout", checkoutObject, CheckoutSummaryObject.class);
   }
 
-  public ResponseEntity<CheckoutSummaryObject> calculatePackagingForProducts(long priceThreshold, List<Integer> productIds) throws HttpNoContentException {
+  public ResponseEntity<CheckoutSummaryObject> calculatePackagingForProducts(long priceThreshold, List<Integer> productIds) throws HttpNoContentException, NoMatchingCriteriaException {
     List<ProductDimensionsObject> productDimensionsObjects = new ArrayList<>();
     ResponseEntity<ProductObject> productObject = getProducts();
 
