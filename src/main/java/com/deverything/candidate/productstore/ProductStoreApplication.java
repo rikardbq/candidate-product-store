@@ -27,8 +27,8 @@ public class ProductStoreApplication {
       );
     } catch (Exception e) {
 
-      LOGGER.error("{} {}", e.getClass().getName(), e.getMessage());
-      LOGGER.warn("Properties file with name {} not found.", PROPS_FILE_NAME);
+      LOGGER.error("ERROR={},MESSAGE={}", e.getClass().getName(), e.getMessage());
+      LOGGER.warn("Properties file with name {} not found", PROPS_FILE_NAME);
     }
 
     return appProps;

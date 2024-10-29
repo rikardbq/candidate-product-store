@@ -2,6 +2,8 @@ package com.deverything.candidate.productstore.service;
 
 import com.deverything.candidate.productstore.ProductStoreApplication;
 import com.deverything.candidate.productstore.model.api.*;
+import com.deverything.candidate.productstore.model.exception.HttpNoContentException;
+import com.deverything.candidate.productstore.model.exception.NoMatchingCriteriaException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -12,10 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,22 +51,46 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
 
   @Override
   public ResponseEntity<CheckoutSummaryObject> checkout(CheckoutObject checkoutObject) {
-    return makePOSTRequest(checkoutObject, CheckoutSummaryObject.class);
+
+    return makePOSTRequest("/checkout", checkoutObject, CheckoutSummaryObject.class);
   }
 
-  public void calculatePackagingForProducts(long priceThreshold, List<Integer> productIds) {
+  public ResponseEntity<CheckoutSummaryObject> calculatePackagingForProducts(long priceThreshold, List<Integer> productIds) throws HttpNoContentException {
     List<ProductDimensionsObject> productDimensionsObjects = new ArrayList<>();
-    List<Product> products = getProducts().getBody().getProducts().stream().filter(p -> p.getPrice() > priceThreshold).collect(Collectors.toList());
+    ResponseEntity<ProductObject> productObject = getProducts();
 
-    for (Product product : products) {
-
-      if (productIds.contains(product.getId())) {
-        ProductDimensionsObject productDimensionsObject = getProductDimensions(product.getId()).getBody();
-        productDimensionsObjects.add(productDimensionsObject);
-      }
+    if (productObject.getBody() == null) {
+      throw new HttpNoContentException("ProductObject");
     }
 
-    List<Box> boxes = getBoxes().getBody().getBoxes();
+    List<Product> products = productObject.getBody()
+        .getProducts().stream()
+        .filter(p -> p.getPrice() > priceThreshold && productIds.contains(p.getId()))
+        .collect(Collectors.toList());
+
+    if (products.isEmpty()) {
+      throw new NoMatchingCriteriaException(
+          "Product list empty, no matching criteria",
+          "No products matched the criteria [productPrice > priceThreshold] with threshold=" + priceThreshold
+      );
+    }
+
+    for (Product product : products) {
+      ResponseEntity<ProductDimensionsObject> productDimensionsObject = getProductDimensions(product.getId());
+
+      if (productDimensionsObject.getBody() == null) {
+        throw new HttpNoContentException("ProductDimensionsObject");
+      }
+
+      productDimensionsObjects.add(productDimensionsObject.getBody());
+    }
+
+    ResponseEntity<BoxListObject> boxListObject = getBoxes();
+
+    if (boxListObject.getBody() == null) {
+      throw new HttpNoContentException("BoxListObject");
+    }
+
     int totalWidth = productDimensionsObjects.stream()
         .map(ProductDimensionsObject::getWidth)
         .reduce(0, Integer::sum);
@@ -75,11 +98,24 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
         .map(ProductDimensionsObject::getHeight)
         .max(Comparator.comparingInt(o -> o)).get();
 
-    LOGGER.info("HELLO WORLD WIDTH, HEIGHT {} {}", totalWidth, maxHeight);
+    Optional<Box> boxOptional = boxListObject.getBody().getBoxes().stream()
+        .filter(b -> b.getHeight() >= maxHeight && b.getWidth() >= totalWidth)
+        .findFirst();
 
-    Box boxThatFits = boxes.stream().filter(b -> b.getHeight() >= maxHeight && b.getWidth() >= totalWidth).findFirst().get();
+    if (boxOptional.isEmpty()) {
+      throw new NoMatchingCriteriaException(
+          "Box doesn't exist, no matching criteria",
+          "No box matched the criteria [boxHeight >= productsMaxHeight && boxWidth >= productsTotalWidth] with productsMaxHeight=" + maxHeight + ",productsTotalWidth=" + totalWidth
+      );
+    }
 
-    LOGGER.info("BOXX {}", boxThatFits);
+    return checkout(new CheckoutObject(
+            boxOptional.get().getId(),
+            products.stream()
+                .map(Product::getId)
+                .collect(Collectors.toList())
+        )
+    );
   }
 
   private HttpEntity<?> makeHttpEntity(Object requestObj) {
@@ -91,22 +127,22 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
   }
 
   private <T> ResponseEntity<T> makeGETRequest(String path, Class<T> responseType, Object... uriVariables) {
-    LOGGER.info("GET -> {}{}{}", API_BASE_PATH, path, uriVariables);
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("USER", API_USER);
-    headers.set("APIKEY", API_KEY);
+    LOGGER.info("GET -> basePath={},path={},uriVariables={}", API_BASE_PATH, path, uriVariables);
+
     return restTemplate.exchange(
         API_BASE_PATH + path,
         HttpMethod.GET,
-        new HttpEntity<>(headers),
+        makeHttpEntity(null),
         responseType,
         uriVariables
     );
   }
 
-  private <T> ResponseEntity<T> makePOSTRequest(Object requestObj, Class<T> responseType) {
+  private <T> ResponseEntity<T> makePOSTRequest(String path, Object requestObj, Class<T> responseType) {
+    LOGGER.info("POST -> basePath={},path={}", API_BASE_PATH, path);
+
     return restTemplate.exchange(
-        API_BASE_PATH,
+        API_BASE_PATH + path,
         HttpMethod.POST,
         makeHttpEntity(requestObj),
         responseType
