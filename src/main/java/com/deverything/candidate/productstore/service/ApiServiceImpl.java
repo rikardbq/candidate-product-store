@@ -1,6 +1,7 @@
 package com.deverything.candidate.productstore.service;
 
 import com.deverything.candidate.productstore.ProductStoreApplication;
+import com.deverything.candidate.productstore.controller.RestTemplateResponseErrorHandler;
 import com.deverything.candidate.productstore.model.api.*;
 import com.deverything.candidate.productstore.model.exception.HttpNoContentException;
 import com.deverything.candidate.productstore.model.exception.NoMatchingCriteriaException;
@@ -28,7 +29,9 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
   private final RestTemplate restTemplate;
 
   public ApiServiceImpl(RestTemplateBuilder restTemplateBuilder) {
-    this.restTemplate = restTemplateBuilder.build();
+    this.restTemplate = restTemplateBuilder
+        .errorHandler(new RestTemplateResponseErrorHandler())
+        .build();
   }
 
   @Override
@@ -71,7 +74,7 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
     if (products.isEmpty()) {
       throw new NoMatchingCriteriaException(
           "Product list empty, no matching criteria",
-          "No products matched the criteria [productPrice > priceThreshold] with threshold=" + priceThreshold
+          "No products matched the criteria [productPrice > priceThreshold && productIds.contains(productId)] with threshold=" + priceThreshold + ",productIds=" + productIds
       );
     }
 
@@ -100,7 +103,7 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
 
     Optional<Box> boxOptional = boxListObject.getBody().getBoxes().stream()
         .filter(b -> b.getHeight() >= maxHeight && b.getWidth() >= totalWidth)
-        .findFirst();
+        .min(Comparator.comparingInt(o -> o.getWidth() + o.getHeight()));
 
     if (boxOptional.isEmpty()) {
       throw new NoMatchingCriteriaException(
