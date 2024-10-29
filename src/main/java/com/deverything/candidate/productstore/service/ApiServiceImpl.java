@@ -27,10 +27,12 @@ public class ApiServiceImpl implements ApiService<ProductObject, ProductDimensio
   private static final String API_USER = Objects.requireNonNullElse(ProductStoreApplication.applicationProperties().getProperty("API_USER"), "some_guy");
 
   private final RestTemplate restTemplate;
+  private final RestTemplateResponseErrorHandler restTemplateResponseErrorHandler;
 
-  public ApiServiceImpl(RestTemplateBuilder restTemplateBuilder) {
+  public ApiServiceImpl(RestTemplateBuilder restTemplateBuilder, RestTemplateResponseErrorHandler restTemplateResponseErrorHandler) {
+    this.restTemplateResponseErrorHandler = restTemplateResponseErrorHandler;
     this.restTemplate = restTemplateBuilder
-        .errorHandler(new RestTemplateResponseErrorHandler())
+        .errorHandler(restTemplateResponseErrorHandler)
         .build();
   }
 

@@ -1,11 +1,11 @@
 package com.deverything.candidate.productstore;
 
+import com.deverything.candidate.productstore.controller.RestTemplateResponseErrorHandler;
 import com.deverything.candidate.productstore.model.api.*;
 import com.deverything.candidate.productstore.model.exception.NoMatchingCriteriaException;
 import com.deverything.candidate.productstore.service.ApiServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -17,8 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -27,15 +26,18 @@ public class ApiServiceTest {
   @Mock
   private RestTemplate restTemplate;
   @Mock
+  private RestTemplateResponseErrorHandler restTemplateResponseErrorHandler;
+  @Mock
   private RestTemplateBuilder restTemplateBuilder;
 
-  @InjectMocks
+  //@InjectMocks
   private ApiServiceImpl apiService;
 
   @BeforeEach
   public void setUp() {
+    when(restTemplateBuilder.errorHandler(restTemplateResponseErrorHandler)).thenReturn(restTemplateBuilder);
     when(restTemplateBuilder.build()).thenReturn(restTemplate);
-    apiService = new ApiServiceImpl(restTemplateBuilder);
+    apiService = new ApiServiceImpl(restTemplateBuilder, restTemplateResponseErrorHandler);
   }
 
   @Test
@@ -161,6 +163,79 @@ public class ApiServiceTest {
     verify(apiServiceSpy, times(3)).getProductDimensions(anyInt());
     verify(apiServiceSpy, times(1)).getBoxes();
     verify(apiServiceSpy, times(1)).calculatePackagingForProducts(eq(300L), eq(Arrays.asList(4, 5, 6)));
+  }
+
+  @Test
+  public void getProductsHasCorrectValues() {
+    ProductObject productObject1 = new ProductObject();
+
+    Product product1 = new Product(1, "test1", 210);
+    Product product2 = new Product(2, "test2", 220);
+    Product product3 = new Product(3, "test3", 230);
+    Product product4 = new Product(4, "test4", 310);
+    Product product5 = new Product(5, "test5", 320);
+    Product product6 = new Product(6, "test6", 330);
+
+    productObject1.setStatusCode("200");
+    productObject1.setProducts(Arrays.asList(
+        product1,
+        product2,
+        product3,
+        product4,
+        product5,
+        product6
+    ));
+
+    ResponseEntity<ProductObject> getProductsResponse1 = new ResponseEntity<>(productObject1, HttpStatus.OK);
+
+    when(apiService.getProducts()).thenReturn(getProductsResponse1);
+
+    ResponseEntity<ProductObject> assertedProductObjectResponse = apiService.getProducts();
+    assertNotNull(assertedProductObjectResponse);
+    assertNotNull(assertedProductObjectResponse.getStatusCode());
+    assertNotNull(assertedProductObjectResponse.getBody());
+    assertEquals(HttpStatus.OK, assertedProductObjectResponse.getStatusCode());
+    assertEquals("200", assertedProductObjectResponse.getBody().getStatusCode());
+    assertEquals(Arrays.asList(product1, product2, product3, product4, product5, product6), assertedProductObjectResponse.getBody().getProducts());
+  }
+
+  @Test
+  public void getProductDimensionsHasCorrectValues() {
+    Product product1 = new Product(1, "test1", 210);
+
+    ProductDimensionsObject productDimensionsObject1 = new ProductDimensionsObject("200", 200, 200);
+    ResponseEntity<ProductDimensionsObject> getProductDimensionsResponse1 = new ResponseEntity<>(productDimensionsObject1, HttpStatus.OK);
+
+    when(apiService.getProductDimensions(product1.getId())).thenReturn(getProductDimensionsResponse1);
+
+    ResponseEntity<ProductDimensionsObject> assertedProductDimensionsObjectResponse = apiService.getProductDimensions(1);
+    assertNotNull(assertedProductDimensionsObjectResponse);
+    assertNotNull(assertedProductDimensionsObjectResponse.getStatusCode());
+    assertNotNull(assertedProductDimensionsObjectResponse.getBody());
+    assertEquals(HttpStatus.OK, assertedProductDimensionsObjectResponse.getStatusCode());
+    assertEquals("200", assertedProductDimensionsObjectResponse.getBody().getStatusCode());
+    assertEquals(200, assertedProductDimensionsObjectResponse.getBody().getWidth());
+    assertEquals(200, assertedProductDimensionsObjectResponse.getBody().getHeight());
+  }
+
+  @Test
+  public void getBoxesHasCorrectValues() {
+    Box box1 = new Box(1, 800, 200);
+    Box box2 = new Box(2, 600, 2000);
+    Box box3 = new Box(3, 600, 200);
+
+    BoxListObject boxListObject1 = new BoxListObject("200", Arrays.asList(box1, box2, box3));
+    ResponseEntity<BoxListObject> getBoxesResponse1 = new ResponseEntity<>(boxListObject1, HttpStatus.OK);
+
+    when(apiService.getBoxes()).thenReturn(getBoxesResponse1);
+
+    ResponseEntity<BoxListObject> assertedBoxListObjectResponse = apiService.getBoxes();
+    assertNotNull(assertedBoxListObjectResponse);
+    assertNotNull(assertedBoxListObjectResponse.getStatusCode());
+    assertNotNull(assertedBoxListObjectResponse.getBody());
+    assertEquals(HttpStatus.OK, assertedBoxListObjectResponse.getStatusCode());
+    assertEquals("200", assertedBoxListObjectResponse.getBody().getStatusCode());
+    assertEquals(Arrays.asList(box1, box2, box3), assertedBoxListObjectResponse.getBody().getBoxes());
   }
 
   @Test
